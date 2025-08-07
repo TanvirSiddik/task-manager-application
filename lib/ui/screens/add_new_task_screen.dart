@@ -89,6 +89,11 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(response.body['status'])));
         Navigator.pop(context);
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.body['status'])));
       }
     }
   }
