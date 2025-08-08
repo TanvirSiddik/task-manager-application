@@ -7,12 +7,14 @@ class NetworkResponse {
   final bool isSuccess;
   final Map<String, dynamic> body;
   final String? errorMessage;
+  final bool? isUnAuthorized;
 
   NetworkResponse({
     required this.statusCode,
     required this.isSuccess,
     required this.body,
     this.errorMessage,
+    this.isUnAuthorized,
   });
 }
 
@@ -37,6 +39,14 @@ class NetworkCaller {
           isSuccess: true,
           body: decodedBody,
         );
+      } else if (response.statusCode == 401) {
+        final decodedBody = jsonDecode(response.body);
+        return NetworkResponse(
+          statusCode: response.statusCode,
+          isSuccess: false,
+          body: decodedBody,
+          isUnAuthorized: true,
+        );
       } else {
         final Map<String, dynamic> errorBody = jsonDecode(response.body);
         return NetworkResponse(
@@ -59,13 +69,24 @@ class NetworkCaller {
     final Uri uri = Uri.parse(url);
     final Response response = await get(
       uri,
-      headers: {'Content-Type': 'Application/Json'},
+      headers: {
+        'token': AuthController.accessToken ?? '',
+        'Content-Type': 'Application/Json',
+      },
     );
     if (response.statusCode == 200) {
       return NetworkResponse(
         statusCode: response.statusCode,
         isSuccess: true,
         body: jsonDecode(response.body),
+      );
+    } else if (response.statusCode == 401) {
+      final decodedBody = jsonDecode(response.body);
+      return NetworkResponse(
+        statusCode: response.statusCode,
+        isSuccess: false,
+        body: decodedBody,
+        isUnAuthorized: true,
       );
     } else {
       return NetworkResponse(
