@@ -27,7 +27,7 @@ class _ConstAppBarState extends State<ConstAppBar> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AuthController.userModel!.firstName,
+                AuthController.userModel!.fullName,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(color: Colors.white),

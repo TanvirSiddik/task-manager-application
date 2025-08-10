@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
-import 'package:taskmanger_no_getx/ui/screens/forget_password_screen.dart';
-import 'package:taskmanger_no_getx/ui/screens/login_screen.dart';
+import 'package:taskmanger_no_getx/data/network/network_caller.dart';
+import 'package:taskmanger_no_getx/data/utils/api_config.dart';
 import 'package:taskmanger_no_getx/ui/screens/set_new_password_screen.dart';
-import 'package:taskmanger_no_getx/ui/screens/signup_screen.dart';
 import 'package:taskmanger_no_getx/ui/utils/validator.dart';
 import 'package:taskmanger_no_getx/ui/widget/have_account.dart';
 
 class PinValidationScreen extends StatefulWidget {
-  const PinValidationScreen({super.key});
+  const PinValidationScreen({super.key, required this.userEmail});
   static const String name = 'pin-verification-screen';
+  final String userEmail;
 
   @override
   State<PinValidationScreen> createState() => _PinValidationScreenState();
@@ -19,15 +19,10 @@ class _PinValidationScreenState extends State<PinValidationScreen> {
   final TextEditingController _pinValidationController =
       TextEditingController();
   final GlobalKey<FormState> _pinValidationFormKey = GlobalKey<FormState>();
-
+  int _counter = 0;
   // Routing
   @override
   Widget build(BuildContext context) {
-    final Map<String, String> args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, String>;
-    final String flow =
-        args['flow'] ?? SignupScreen.name; // default to signup-screen
-
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -58,11 +53,16 @@ class _PinValidationScreenState extends State<PinValidationScreen> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () => _nextScreenButton(flow),
+                onPressed: () => _nextScreenButton(),
                 child: const Text('Verify'),
               ),
               const SizedBox(height: 30),
               HaveAccount(),
+              const SizedBox(height: 30),
+              TextButton(
+                onPressed: _counter == 1 ? null : _getOtpAgain,
+                child: const Text('didn\'t receive code?'),
+              ),
             ],
           ),
         ),
@@ -70,16 +70,26 @@ class _PinValidationScreenState extends State<PinValidationScreen> {
     );
   }
 
-  void _nextScreenButton(String flow) {
+  void _nextScreenButton() async {
+    if (!mounted) return;
+    FocusScope.of(context).unfocus();
     if (_pinValidationFormKey.currentState!.validate()) {
-      if (flow == SignupScreen.name) {
-        Navigator.pushNamedAndRemoveUntil(
+      final otp = _pinValidationController.text.trim();
+      final userEmail = widget.userEmail;
+      NetworkResponse response = await NetworkCaller.getRequest(
+        url: ApiConfig.recoverVerifyOtp(userEmail, otp),
+      );
+      if (response.isSuccess) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
           context,
-          LoginScreen.name,
-          (predicate) => false,
-        );
-      } else if (flow == ForgetPasswordScreen.name) {
-        Navigator.pushNamed(context, SetNewPasswordScreen.name);
+        ).showSnackBar(SnackBar(content: Text(response.body['data'])));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => SetNewPasswordScreen(userEmail: userEmail, otp: otp)));
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.body['data'])));
       }
     }
   }
@@ -88,6 +98,23 @@ class _PinValidationScreenState extends State<PinValidationScreen> {
     if (value == null || value.trim().isEmpty) {
     } else if (Validator.pinValidator(value)) {
       return null;
+    }
+  }
+
+  void _getOtpAgain() async {
+    if (!mounted) return;
+    FocusScope.of(context).unfocus();
+    NetworkResponse response = await NetworkCaller.getRequest(
+      url: ApiConfig.recoverVerifyEmail(widget.userEmail),
+    );
+    if (response.isSuccess) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('otp was sent again to ${widget.userEmail}')),
+      );
+      if (!mounted) return;
+      _counter++;
+      setState(() {});
     }
   }
 }

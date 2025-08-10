@@ -22,7 +22,7 @@ class TaskModel {
     required this.createdDate,
   });
 
-  factory TaskModel.fromJson(Map<String, String> jsonTask) {
+  factory TaskModel.fromJson(Map<String, dynamic> jsonTask) {
     return TaskModel(
       id: jsonTask['_id']!,
       title: jsonTask['title']!,

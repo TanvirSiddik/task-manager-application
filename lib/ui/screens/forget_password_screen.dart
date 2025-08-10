@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:taskmanger_no_getx/data/network/network_caller.dart';
+import 'package:taskmanger_no_getx/data/utils/api_config.dart';
 import 'package:taskmanger_no_getx/ui/screens/pin_validation_screen.dart';
 import 'package:taskmanger_no_getx/ui/utils/validator.dart';
 import 'package:taskmanger_no_getx/ui/widget/have_account.dart';
@@ -58,13 +60,26 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
     );
   }
 
-  void _pinVerificationScreenButton() {
+  void _pinVerificationScreenButton() async {
+    if (!mounted) return;
+    FocusScope.of(context).unfocus();
     if (_emailSubmissionFormKey.currentState!.validate()) {
-      Navigator.pushNamed(
-        context,
-        PinValidationScreen.name,
-        arguments: {'flow' :ForgetPasswordScreen.name},
+      final userEmail = _emailController.text.trim();
+      NetworkResponse response = await NetworkCaller.getRequest(
+        url: ApiConfig.recoverVerifyEmail(userEmail),
       );
+      if (response.isSuccess) {
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PinValidationScreen(userEmail: userEmail),
+          ),
+        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.body['data'])));
+      }
     }
   }
 

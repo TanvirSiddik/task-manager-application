@@ -4,8 +4,7 @@ import 'package:taskmanger_no_getx/ui/screens/edit_profile_screen.dart';
 import 'package:taskmanger_no_getx/ui/screens/forget_password_screen.dart';
 import 'package:taskmanger_no_getx/ui/screens/login_screen.dart';
 import 'package:taskmanger_no_getx/ui/screens/main_nav_bar_screen.dart';
-import 'package:taskmanger_no_getx/ui/screens/pin_validation_screen.dart';
-import 'package:taskmanger_no_getx/ui/screens/set_new_password_screen.dart';
+
 import 'package:taskmanger_no_getx/ui/screens/signup_screen.dart';
 import 'package:taskmanger_no_getx/ui/screens/splash_screen.dart';
 
@@ -46,8 +45,8 @@ class MyApp extends StatelessWidget {
         SplashScreen.name: (context) => SplashScreen(),
         LoginScreen.name: (context) => LoginScreen(),
         ForgetPasswordScreen.name: (context) => ForgetPasswordScreen(),
-        PinValidationScreen.name: (context) => PinValidationScreen(),
-        SetNewPasswordScreen.name: (context) => SetNewPasswordScreen(),
+        
+        
         SignupScreen.name: (context) => SignupScreen(),
         MainNavBarScreen.name: (context) => MainNavBarScreen(),
         AddNewTaskScreen.name: (context) => AddNewTaskScreen(),

@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:taskmanger_no_getx/data/network/network_caller.dart';
+import 'package:taskmanger_no_getx/data/utils/api_config.dart';
 import 'package:taskmanger_no_getx/ui/screens/login_screen.dart';
 import 'package:taskmanger_no_getx/ui/utils/validator.dart';
 import 'package:taskmanger_no_getx/ui/widget/have_account.dart';
 
 class SetNewPasswordScreen extends StatefulWidget {
-  const SetNewPasswordScreen({super.key});
+  final String userEmail;
+  final String otp;
+  const SetNewPasswordScreen({
+    super.key,
+    required this.userEmail,
+    required this.otp,
+  });
   static const String name = 'set-new-password-screen';
   @override
   State<SetNewPasswordScreen> createState() => _SetNewPasswordScreenState();
@@ -68,22 +76,46 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
     );
   }
 
-  void _backToLoginScreenButton() {
+  void _backToLoginScreenButton() async {
+    if (!mounted) return;
+    FocusScope.of(context).unfocus();
+
     if (_setPasswordFormKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.green,
-          content: const Text(
-            'Password set successfully',
-            style: TextStyle(color: Colors.white, fontSize: 14),
+      final String userEmail = widget.userEmail;
+      final String otp = widget.otp;
+      final String password = _confirmPasswordController.text;
+      Map<String, String> jsonBody = {
+        "email": userEmail,
+        "OTP": otp,
+        "password": password,
+      };
+
+      NetworkResponse response = await NetworkCaller.postRequest(
+        url: ApiConfig.recoverResetPassword,
+        jsonBody: jsonBody,
+      );
+      if (response.isSuccess) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.green,
+            content: Text(
+              response.body['data'],
+              style: TextStyle(color: Colors.white, fontSize: 14),
+            ),
           ),
-        ),
-      );
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        LoginScreen.name,
-        (predicate) => false,
-      );
+        );
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          LoginScreen.name,
+          (predicate) => false,
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.body['data'])));
+      }
     }
   }
 

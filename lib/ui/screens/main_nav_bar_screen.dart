@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:taskmanger_no_getx/data/models/task_status_count_model.dart';
+import 'package:taskmanger_no_getx/data/network/network_caller.dart';
+import 'package:taskmanger_no_getx/data/utils/api_config.dart';
 import 'package:taskmanger_no_getx/ui/screens/add_new_task_screen.dart';
 import 'package:taskmanger_no_getx/ui/screens/nav_bar_list/canceled_task_nav_screen.dart';
 import 'package:taskmanger_no_getx/ui/screens/nav_bar_list/completed_task_nav_screen.dart';
@@ -21,6 +24,8 @@ class _MainNavBarScreenState extends State<MainNavBarScreen> {
     InProgressTaskNavScreen(),
   ];
   int _selectedIndex = 0;
+  List<TaskStatusCountModel> taskCount = [];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,5 +65,24 @@ class _MainNavBarScreenState extends State<MainNavBarScreen> {
 
   void _addNewTaskButtton() {
     Navigator.pushNamed(context, AddNewTaskScreen.name);
+  }
+
+  void _loadTaskCount() async {
+    NetworkResponse response = await NetworkCaller.getRequest(
+      url: ApiConfig.taskStatusCount,
+    );
+    if (response.isSuccess) {
+      final List decodedBody = response.body['data'];
+      taskCount = decodedBody
+          .map((toElement) => TaskStatusCountModel.fromJson(toElement))
+          .toList();
+      setState(() {});
+    }
+  }
+
+  @override
+  void initState() {
+    _loadTaskCount();
+    super.initState();
   }
 }

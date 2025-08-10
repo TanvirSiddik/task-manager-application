@@ -34,6 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
       url: ApiConfig.profileDetails,
     );
     if (response.body['status'] == 'unauthorized') {
+      await AuthController.clearUserData();
       return false;
     }
     return true;
