@@ -15,6 +15,7 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
   final TextEditingController _taskDescriptionController =
       TextEditingController();
   final GlobalKey<FormState> _newTaskFormKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -61,8 +62,17 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _submitNewTaskButton,
-                child: Icon(Icons.arrow_forward_ios_rounded, size: 27),
+                onPressed: _isLoading ? null : _submitNewTaskButton,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.arrow_forward_ios_rounded, size: 27),
               ),
             ],
           ),
@@ -72,6 +82,9 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
   }
 
   void _submitNewTaskButton() async {
+    _isLoading = true;
+    if (!mounted) return;
+    setState(() {});
     FocusScope.of(context).unfocus();
     if (_newTaskFormKey.currentState!.validate()) {
       Map<String, dynamic> jsonBody = {
@@ -88,6 +101,9 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(response.body['status'])));
+        _isLoading = false;
+        if (!mounted) return;
+        setState(() {});
         Navigator.pop(context);
       } else {
         if (!mounted) return;

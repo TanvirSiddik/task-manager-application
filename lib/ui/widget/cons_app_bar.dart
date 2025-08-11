@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:taskmanger_no_getx/controller/auth_controller.dart';
+import 'package:taskmanger_no_getx/data/models/user_model.dart';
+import 'package:taskmanger_no_getx/data/network/network_caller.dart';
+import 'package:taskmanger_no_getx/data/utils/api_config.dart';
 import 'package:taskmanger_no_getx/ui/screens/add_new_task_screen.dart';
 import 'package:taskmanger_no_getx/ui/screens/edit_profile_screen.dart';
 import 'package:taskmanger_no_getx/ui/screens/login_screen.dart';
 
 class ConstAppBar extends StatefulWidget {
-  const ConstAppBar({super.key});
+  final VoidCallback? voidCallback;
+  static String name = '/const-app-bar';
+  const ConstAppBar({super.key, this.voidCallback});
 
   @override
   State<ConstAppBar> createState() => _ConstAppBarState();
 }
 
 class _ConstAppBarState extends State<ConstAppBar> {
+  UserModel? userDetails;
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -27,7 +33,7 @@ class _ConstAppBarState extends State<ConstAppBar> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AuthController.userModel!.fullName,
+                userDetails?.fullName ?? AuthController.userModel!.fullName,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(color: Colors.white),
@@ -90,7 +96,35 @@ class _ConstAppBarState extends State<ConstAppBar> {
 
   void _editProfileButton(BuildContext context) {
     if (ModalRoute.of(context)!.settings.name != EditProfileScreen.name) {
-      Navigator.pushNamed(context, EditProfileScreen.name);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              EditProfileScreen(voidCallback: _loadProfileDetails),
+          settings: const RouteSettings(name: EditProfileScreen.name),
+        ),
+      );
+    }
+  }
+
+  void _loadProfileDetails() async {
+    if (!context.mounted) return;
+    FocusScope.of(context).unfocus();
+    NetworkResponse response = await NetworkCaller.getRequest(
+      url: ApiConfig.profileDetails,
+    );
+
+    if (response.isSuccess && response.body['data'] != null) {
+      final userJson = response.body['data'];
+
+      if (userJson != null && userJson is List && userJson.first != null) {
+        if (!mounted) return;
+        setState(() {
+          userDetails = UserModel.fromJson(userJson.first);
+        });
+      } else {
+        userDetails = AuthController.userModel;
+      }
     }
   }
 

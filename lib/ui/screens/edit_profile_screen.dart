@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:taskmanger_no_getx/controller/auth_controller.dart';
+import 'package:taskmanger_no_getx/data/models/user_model.dart';
 import 'package:taskmanger_no_getx/data/network/network_caller.dart';
 import 'package:taskmanger_no_getx/data/utils/api_config.dart';
 import 'package:taskmanger_no_getx/ui/utils/validator.dart';
 import 'package:taskmanger_no_getx/ui/widget/cons_app_bar.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  final VoidCallback? voidCallback;
+  const EditProfileScreen({super.key, this.voidCallback});
   static const String name = '/edit-profile-screen';
 
   @override
@@ -28,6 +30,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   );
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _profileUpdateFormKey = GlobalKey<FormState>();
+  bool _isLoading = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,6 +57,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 24),
                   TextFormField(
+                    enabled: false,
+                    keyboardType: TextInputType.emailAddress,
                     controller: _emailController,
                     decoration: InputDecoration(hintText: 'Email'),
                     validator: (value) => _validateEmail(value),
@@ -103,8 +108,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: _submitEditButton,
-                    child: const Icon(Icons.arrow_forward_ios_rounded),
+                    onPressed: _isLoading ? null : _submitEditButton,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.arrow_forward_ios_rounded),
                   ),
                 ],
               ),
@@ -116,30 +130,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _submitEditButton() async {
+    if (mounted) {
+      _isLoading = true;
+      setState(() {});
+    }
+
     FocusScope.of(context).unfocus();
     if (_profileUpdateFormKey.currentState!.validate()) {
-      Map<String, dynamic> body = {
-        "email": _emailController.text.trim(),
-        "firstName": _firsNameController.text.trim(),
-        "lastName": _lastNameController.text.trim(),
-        "mobile": _phoneNumberController.text.trim(),
-        "password": _passwordController.text,
-      };
+      final jsonBody = UserModel(
+        email: _emailController.text.trim(),
+        firstName: _firsNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        mobile: _phoneNumberController.text.trim(),
+        password: _passwordController.text.isEmpty
+            ? AuthController.userModel!.password
+            : _passwordController.text,
+      );
+
       NetworkResponse response = await NetworkCaller.postRequest(
         url: ApiConfig.update,
-        jsonBody: body,
+        jsonBody: jsonBody.toJson(),
       );
       if (response.isSuccess) {
+        AuthController.setUserDetails(jsonBody);
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('Profile update was successful')),
-        );
+        _isLoading = false;
+        setState(() {});
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.statusCode.toString())));
         Navigator.pop(context);
       } else {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.errorMessage.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.statusCode.toString())));
       }
     }
   }

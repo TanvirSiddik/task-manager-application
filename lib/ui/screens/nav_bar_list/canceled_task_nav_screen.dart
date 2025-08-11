@@ -53,7 +53,7 @@ class _CanceledTaskNavScreenState extends State<CanceledTaskNavScreen> {
       url: ApiConfig.getCanceledTask,
     );
     if (response.isSuccess) {
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       setState(() {
         final List decodedTaskList = response.body['data'];

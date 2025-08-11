@@ -20,7 +20,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _loginFormKey = GlobalKey<FormState>();
-  var isLoading = false;
+  bool _isLoading = false;
+  bool _isShowing = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,18 +53,31 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: InputDecoration(hintText: 'Password'),
+                  decoration: InputDecoration(
+                    hintText: 'Password',
+                    suffixIconColor: Colors.black,
+                    suffixIcon: GestureDetector(
+                      onTap: () {
+                        _isShowing = !_isShowing;
+                        setState(() {});
+                      },
+                      child: _isShowing
+                          ? const Icon(Icons.visibility_off)
+                          : const Icon(Icons.visibility),
+                    ),
+                  ),
+                  obscureText: _isShowing,
                   validator: (value) => _validatePassword(value),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: isLoading
+                  onPressed: _isLoading
                       ? null
                       : () => _onSubmitButton(
                           _emailController.text.trim(),
                           _passwordController.text,
                         ),
-                  child: isLoading
+                  child: _isLoading
                       ? SizedBox(
                           height: 20,
                           width: 20,
@@ -114,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
     FocusScope.of(context).unfocus();
     if (_loginFormKey.currentState!.validate()) {
       setState(() {
-        isLoading = true;
+        _isLoading = true;
       });
       final Map<String, dynamic> body = {"email": email, "password": password};
       final NetworkResponse response = await NetworkCaller.postRequest(
@@ -125,7 +140,6 @@ class _LoginScreenState extends State<LoginScreen> {
         if (response.isSuccess) {
           String token = response.body['token'];
           final userModel = UserModel.fromJson(response.body['data']);
-
           AuthController.saveUserData(token, userModel);
           if (!mounted) return;
           Navigator.pushReplacementNamed(context, MainNavBarScreen.name);
@@ -147,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ).showSnackBar(SnackBar(content: Text(e.toString())));
       } finally {
         setState(() {
-          isLoading = false;
+          _isLoading = false;
         });
       }
     }
@@ -155,11 +169,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) return 'Email is required';
-
     if (Validator.validateMail(value)) {
       return 'Enter a valid mail';
     }
-
     return null;
   }
 

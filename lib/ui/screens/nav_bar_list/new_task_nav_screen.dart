@@ -14,17 +14,17 @@ class NewTaskNavScreen extends StatefulWidget {
 class _NewTaskNavScreenState extends State<NewTaskNavScreen> {
   List<TaskModel> newTaskList = [];
   bool _isloading = false;
+
+  @override
+  void initState() {
+    _loadTask();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return (_isloading && newTaskList.isEmpty)
         ? Center(child: CircularProgressIndicator())
-        : newTaskList.isEmpty
-        ? Center(
-            child: Text(
-              'List is empty',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          )
         : RefreshIndicator(
             onRefresh: _loadTask,
             child: Column(
@@ -50,7 +50,7 @@ class _NewTaskNavScreenState extends State<NewTaskNavScreen> {
 
   Future<void> _loadTask() async {
     _isloading = true;
-    if (!context.mounted) return;
+    if (!mounted) return;
     setState(() {});
     NetworkResponse response = await NetworkCaller.getRequest(
       url: ApiConfig.getNewTask,
@@ -66,11 +66,5 @@ class _NewTaskNavScreenState extends State<NewTaskNavScreen> {
       if (!context.mounted) return;
       setState(() {});
     }
-  }
-
-  @override
-  void initState() {
-    _loadTask();
-    super.initState();
   }
 }

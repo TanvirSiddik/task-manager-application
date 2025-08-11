@@ -1,41 +1,46 @@
 class UserModel {
-  late String id;
-  late String email;
-  late String firstName;
-  late String lastName;
-  late String mobile;
-  String? photo;
-
-  String get fullName {
-    return '$firstName $lastName';
-  }
+  final String? id;
+  final String email;
+  final String firstName;
+  final String lastName;
+  final String mobile;
+  final String? password;
+  final String? createdDate;
 
   UserModel({
-    required this.id,
+    this.id,
     required this.email,
     required this.firstName,
     required this.lastName,
     required this.mobile,
-    this.photo,
+    this.password,
+    this.createdDate,
   });
 
-  UserModel.fromJson(Map<String, dynamic> jsonData) {
-    id = jsonData['_id'];
-    email = jsonData['email'];
-    firstName = jsonData['firstName'];
-    lastName = jsonData['lastName'];
-    mobile = jsonData['mobile'];
-    photo = jsonData['photo'];
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['_id'],
+      email: json['email'] ?? '',
+      firstName: json['firstName'] ?? '',
+      lastName: json['lastName'] ?? '',
+      mobile: json['mobile'] ?? '',
+      password: json['password'],
+      createdDate: json['createdDate'],
+    );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
+    final map = {
       'email': email,
       'firstName': firstName,
       'lastName': lastName,
       'mobile': mobile,
-      'photo': photo,
     };
+    if (password != null && password!.isNotEmpty) {
+      map['password'] = password!;
+    }
+    return map;
   }
+
+  String get fullName => '$firstName $lastName';
 }

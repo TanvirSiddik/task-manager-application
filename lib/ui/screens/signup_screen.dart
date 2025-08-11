@@ -18,6 +18,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _signUpFormKey = GlobalKey<FormState>();
+  bool _isLoading = false;
   bool isLoading = false;
   @override
   Widget build(BuildContext context) {
@@ -98,8 +99,17 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: _userSubmissionButton,
-                      child: const Icon(Icons.arrow_forward_ios_rounded),
+                      onPressed: _isLoading ? null : _userSubmissionButton,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.arrow_forward_ios_rounded),
                     ),
                   ],
                 ),
@@ -112,6 +122,10 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void _userSubmissionButton() async {
+    
+    _isLoading = true;
+    if (!mounted) return;
+    setState(() {});
     FocusScope.of(context).unfocus();
     if (_signUpFormKey.currentState!.validate()) {
       isLoading = true;
@@ -134,6 +148,9 @@ class _SignupScreenState extends State<SignupScreen> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(response.body['status'])));
+          _isLoading = false;
+          if (!mounted) return;
+          setState(() {});
           Navigator.pop(context);
         } else {
           if (!mounted) return;

@@ -14,8 +14,10 @@ class ApiConfig {
   static const String taskStatusCount = '$baseUrl/taskStatusCount';
   static String recoverVerifyEmail(String userEmail) =>
       '$baseUrl/RecoverVerifyEmail/$userEmail';
-  static String recoverVerifyOtp(String userEmail, String otp) => '$baseUrl/RecoverVerifyOtp/$userEmail/$otp';
+  static String recoverVerifyOtp(String userEmail, String otp) =>
+      '$baseUrl/RecoverVerifyOtp/$userEmail/$otp';
   static const String recoverResetPassword = '$baseUrl/RecoverResetPassword';
 
-  static String updateTaskStatus(String id, String taskType) => '$baseUrl/updateTaskStatus/$id/$taskType';
+  static String updateTaskStatus(String id, String taskType) =>
+      '$baseUrl/updateTaskStatus/$id/$taskType';
 }
